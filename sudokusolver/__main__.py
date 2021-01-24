@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # sudoku-solver-py is a program that solves sudoku puzzles
-#   Copyright (C) 2020 Noah Stanford <noahstandingford@gmail.com>
+#   Copyright (C) 2021 Noah Stanford <noahstandingford@gmail.com>
 #
 #   sudoku-solver-py is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -23,13 +23,58 @@ The main module. This handles the overall logic of the project
 from typing import Any, Dict, List, Union
 import copy
 import random
-# import os
+import argparse
 
 ESC = chr(27)
 MAX_GUESSES_PER_ROLL = 500
 
-# the value stored in e represents an empty space in the puzzle
-E = '_'
+MAJOR_VERSION = '0'
+MINOR_VERSION = '1'
+MICRO_VERSION = '0'
+VERSION = "{}.{}.{}".format(MAJOR_VERSION, MINOR_VERSION, MICRO_VERSION)
+
+ABOUT = f"""sudoku-solver-py {VERSION} is a program that solves sudoku puzzles
+ 
+    Sudokus are entered through plain text files with periods for empty spaces and optional line separators
+    Whitespace is ignored
+
+    Example:
+
+    -------------------------
+    | 8 . . | . . . | . . . |
+    | . . 3 | 6 . . | . . . |
+    | . 7 . | . 9 . | 2 . . |
+    -------------------------
+    | . 5 . | . . 7 | . . . |
+    | . . . | . 4 5 | 7 . . |
+    | . . . | 1 . . | . 3 . |
+    -------------------------
+    | . . 1 | . . . | . 6 8 |
+    | . . 8 | 5 . . | . 1 . |
+    | . 9 . | . . . | 4 . . |
+    -------------------------
+    
+  Copyright (C) 2021 Noah Stanford <noahstandingford@gmail.com>
+  sudoku-solver-py is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  sudoku-solver-py is distributed in the hope that it will be interesting and fun,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
+# the value stored in E represents an empty space in the puzzle
+E = '.'
+
+def get_version() -> str:
+    """Returns the current version of the package"""
+    return VERSION
 
 def wipe_screen() -> None:
     """Clears all text from the terminal"""
@@ -55,22 +100,47 @@ def list_diff(list1: List[Any], list2: List[Any]) -> List[Any]:
     """
     return list(set(list1) - set(list2))
 
-
 def print_board(board: List[Any]) -> None:
     """
     prints out the given sudoku board in a pretty format
     """
-    print("-------------------------")
+    print("-" * 25)
     for i in range(len(board)):
         print("|", end=" ")
         for j in range(len(board[i])):
-            print(board[i][j], end=" ")
+            if isinstance(board[i][j], int):
+                print(board[i][j], end=" ")
+            else:
+                print(E, end=" ")
             if (j-2) % 3 == 0:
                 print("|", end=" ")
         print()
         if (i-2) % 3 == 0:
-            print("-------------------------")
+            print("-" * 25)
 
+def write_board_to_file(board: List[List[Any]], filename: str) -> None:
+    """
+    writes the given sudoku board to a file in a pretty format
+    """
+    
+    out_file = open(filename, 'a')
+    out_file.write("-" * 25)
+    out_file.write("\n")
+    for i in range(len(board)):
+        out_file.write("| ")
+        for j in range(len(board[i])):
+            if isinstance(board[i][j], int):
+                out_file.write(f"{board[i][j]} ")
+            else:
+                out_file.write(E + " ")
+            if (j-2) % 3 == 0:
+                out_file.write("| ")
+        out_file.write("\n")
+        if (i-2) % 3 == 0:
+            out_file.write("-" * 25)
+            out_file.write("\n")
+    out_file.write("\n")
+    out_file.close()
 
 def verify_sudoku(board: List[List[Any]], squares: Dict[Any, Any]) -> bool:
     """
@@ -339,24 +409,40 @@ def main():
     The main function. The entry point of this program
     """
 
-    # Really hard one, maybe the hardest?
-    originalSudokuBoard = [[8, E, E, E, E, E, E, E, E],
-                           [E, E, 3, 6, E, E, E, E, E],
-                           [E, 7, E, E, 9, E, 2, E, E],
-                           [E, 5, E, E, E, 7, E, E, E],
-                           [E, E, E, E, 4, 5, 7, E, E],
-                           [E, E, E, 1, E, E, E, 3, E],
-                           [E, E, 1, E, E, E, E, 6, 8],
-                           [E, E, 8, 5, E, E, E, 1, E],
-                           [E, 9, E, E, E, E, 4, E, E]]
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description=ABOUT)
+    parser.add_argument('file', type=str, help='The name of the sudoku text file')
+    parser.add_argument('-o', '--out', type=str, help="Name of optional solution file output", default="")
+    parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {VERSION}', help="Show program's version number and exit.")
+    
+    args = parser.parse_args()
+   
+    text_file = open(args.file, 'r')
+    text_in = text_file.read()
+    text_file.close()
+    text_in = text_in.replace('-', '').replace('|', '') #Removes lines from input
+    text_in = ''.join(text_in.split()) #Removes whitespace from input
 
+    original_sudoku_board = []
+    i = 0
+    for character in text_in:
+        row = i // 9
+        column = i % 9
+        if column == 0:
+            original_sudoku_board.append([])
+        try:
+            original_sudoku_board[row].append(int(character))
+        except ValueError:
+            original_sudoku_board[row].append(character)
+        i += 1
 
-    [final_board, solved] = solve_reasonable_sudoku(originalSudokuBoard)
+    [final_board, solved] = solve_reasonable_sudoku(original_sudoku_board)
 
     print(f"Done... Solved: {solved}")
     if not solved:
         print("This puzzle is either unsolvable or infeasible to solve in reasonable time")
     print_board(final_board)
-
+    if len(args.out) > 0:
+        write_board_to_file(final_board, args.out)
+    
 if __name__ == '__main__':
     main()
