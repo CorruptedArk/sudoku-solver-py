@@ -1,0 +1,21 @@
+Files: *
+Copyright: Copyright 2020 Noah Stanford <noahstandingford@gmail.com>
+License: GPL-3+
+ 
+ sudoku-solver-py is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ 
+ sudoku-solver-py is distributed in the hope that it will be interesting
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Files: debian/*
+Copyright: Copyright 2020 Noah Stanford <noahstandingford@gmail.com>
+License: GPL-3+
+ [LICENSE TEXT] 
