@@ -26,11 +26,13 @@ import random
 import argparse
 
 ESC = chr(27)
-MAX_GUESSES_PER_ROLL = 500
+global max_guesses_per_roll
+max_guesses_per_roll = 500
+
 
 MAJOR_VERSION = '0'
 MINOR_VERSION = '1'
-MICRO_VERSION = '0'
+MICRO_VERSION = '1'
 VERSION = "{}.{}.{}".format(MAJOR_VERSION, MINOR_VERSION, MICRO_VERSION)
 
 ABOUT = f"""sudoku-solver-py {VERSION} is a program that solves sudoku puzzles
@@ -368,7 +370,7 @@ def solve_with_smart_guesses(board: List[List[Any]], squares: Dict[Any, Any]) ->
         [solution, solved] = try_to_solve_with_elimiation(temp_board, squares, guess, reroll)
         guess += 1
         
-        if guess >= MAX_GUESSES_PER_ROLL:
+        if guess >= max_guesses_per_roll:
             reroll += 1
             guess = 0
             guesser = guess_generator(board)
@@ -413,7 +415,8 @@ def main():
     parser.add_argument('file', type=str, help='The name of the sudoku text file')
     parser.add_argument('-o', '--out', type=str, help="Name of optional solution file output", default="")
     parser.add_argument('-v', '--version', action='version', version=f'%(prog)s {VERSION}', help="Show program's version number and exit.")
-    
+    parser.add_argument('-m', '--max', type=int, help="Maximum number of guesses per roll", default=500)
+
     args = parser.parse_args()
    
     text_file = open(args.file, 'r')
@@ -422,6 +425,8 @@ def main():
     text_in = text_in.replace('-', '').replace('|', '') #Removes lines from input
     text_in = ''.join(text_in.split()) #Removes whitespace from input
 
+    global max_guesses_per_roll 
+    max_guesses_per_roll = args.max 
     original_sudoku_board = []
     i = 0
     for character in text_in:
