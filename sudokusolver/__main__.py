@@ -24,6 +24,7 @@ from typing import Any, Dict, List, Union
 import copy
 import random
 import argparse
+import string
 
 ESC = chr(27)
 global max_guesses_per_roll
@@ -32,7 +33,7 @@ max_guesses_per_roll = 500
 
 MAJOR_VERSION = '0'
 MINOR_VERSION = '1'
-MICRO_VERSION = '1'
+MICRO_VERSION = '2'
 VERSION = "{}.{}.{}".format(MAJOR_VERSION, MINOR_VERSION, MICRO_VERSION)
 
 ABOUT = f"""sudoku-solver-py {VERSION} is a program that solves sudoku puzzles
@@ -422,8 +423,8 @@ def main():
     text_file = open(args.file, 'r')
     text_in = text_file.read()
     text_file.close()
-    text_in = text_in.replace('-', '').replace('|', '') #Removes lines from input
-    text_in = ''.join(text_in.split()) #Removes whitespace from input
+    whitelist = set(string.digits + E)
+    text_in = ''.join(c for c in text_in if c in whitelist) #Removes whitespace from input
 
     global max_guesses_per_roll 
     max_guesses_per_roll = args.max 

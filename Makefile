@@ -4,6 +4,9 @@ install:
 uninstall:
 	tr '\n' '\0' < files.txt | xargs -0 sudo rm -f --
 
+clean:
+	rm -rf deb_dist/ dist/ sudokusolver.egg-info/
+
 deb:
 	python3 setup.py --command-packages=stdeb.command sdist_dsc -z groovy --copyright-file debian/copyright --build-depends dh-python --compat 10 bdist_deb
 
